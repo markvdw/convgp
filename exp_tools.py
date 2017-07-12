@@ -144,12 +144,6 @@ class MnistExperiment(ExperimentBase):
             self.X, self.Y, self.Xt, self.Yt = load_mnist()
 
 
-class RectanglesExperiment(ExperimentBase):
-    def setup_dataset(self, verbose=False):
-        d = np.load('datasets/rectangles.npz')
-        self.X, self.Y, self.Xt, self.Yt = d['X'], d['Y'], d['Xtest'], d['Ytest']
-
-
 class RectanglesImageExperiment(ExperimentBase):
     def setup_dataset(self, verbose=False):
         d = np.load('datasets/rectangles_im.npz')

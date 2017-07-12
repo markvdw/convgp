@@ -29,7 +29,12 @@ data = np.loadtxt('rectangles_im_test.amat')
 Xtest = data[:, :-1] / 1.0
 Ytest = data[:, -1:]
 
-np.savez('rectangles_im.npz', X=X, Y=Y, Xtest=Xtest, Ytest=Ytest)
+np.savez_compressed('rectangles_im.npz', X=X, Y=Y, Xtest=Xtest, Ytest=Ytest)
+
+os.remove('./rectangles_im_test.amat')
+os.remove('./rectangles_im_train.amat')
+os.remove('./rectangles_images.zip')
+
 
 # to load the data agqin, do:
 # d = dict(np.load('rectangles_im.npz'))

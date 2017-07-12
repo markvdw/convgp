@@ -43,3 +43,4 @@ with open('./cifar-10-batches-py/test_batch', 'rb') as f:
 np.savez('cifar10.npz', X=images, Y=labels, Xt=timages, Yt=tlabels)
 
 shutil.rmtree('./cifar-10-batches-py')
+os.remove(outfile)

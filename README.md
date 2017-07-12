@@ -33,5 +33,20 @@ correct name exists. Other options change the learning rate or minibatch size.
 Optimisation traces can be displayed using `display.py`.
 
 ## Reproducing the plots in the paper
+And some other interesting comparisons.
+
+### Rectangles
+```
+python rectangles.py -k conv -M 16 --minibatch-size 100 -l 0.01 -n rectangles-paper  # Paper
+python rectangles.py -k rbf -M 1200  # Compare to the optimal RBF
+python rectangles.py -k wconv -M 16 --minibatch-size 100 -l 0.01  # Full solution
+python rectangles.py -k conv -M 35 --minibatch-size 100 -l 0.01  # Full support on the GP
+python rectangles.py -k wconv -M 35 --minibatch-size 100 -l 0.01  # Idem
+```
+
+### Mnist 0 vs 1
+```
+python rectangles.py -k wconv -M 16 --minibatch-size 100 -l 0.01
+```
 
 ## Paper
