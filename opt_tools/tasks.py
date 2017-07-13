@@ -162,6 +162,7 @@ class GPflowLogOptimisation(LogOptimisation):
 
             # logger.model.set_parameter_dict(params.filter(regex="model.*").iloc[-1])
             logger.model.set_parameter_dict(params.filter(regex='(?!.*gpflow-opt*)model').iloc[-1])
+            # Comment out the following line to disable restoring optimiser variables.
             logger.model.set_optimizer_variables_value(params.filter(regex='model\.gpflow-opt\.*').iloc[-1])
             f, _ = logger._fg(logger.model.get_free_state())
             hist = self._get_hist(logger)

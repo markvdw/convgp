@@ -90,23 +90,30 @@ for i, h in enumerate(hs):
     Zend = h[~h.acc.isnull()].iloc[-1]['model.Z']
     patch_size = int(Zend.shape[-1] ** 0.5)
 
-    qm = np.vstack(h[~h.acc.isnull()]['model.q_mu'].iloc[-1]).flatten()
-    s = np.argsort(qm)
+    qmu = h[~h.acc.isnull()]['model.q_mu'].iloc[-1]
+    if qmu.shape[1] == 1:
+        qm = np.vstack(h[~h.acc.isnull()]['model.q_mu'].iloc[-1]).flatten()
+        s = np.argsort(qm)
+    else:
+        s = np.arange(len(qmu))
 
     patch_image, n_rows, n_cols = reshape_patches_for_plot(1 - Zend.reshape(-1, patch_size, patch_size)[s, :, :])
     plt.imshow(patch_image, cmap="gray")
     plt.clim(-0.25, 1.25)
     plt.colorbar()
 
-    plt.figure(qm_fig.number)
-    plt.subplot(nsbplt, nsbplt, i + 1)
-    plt.imshow(np.hstack((qm[s], np.zeros(n_rows * n_cols - len(qm)))).reshape(n_rows, n_cols))
-    plt.colorbar()
+    if qmu.shape[1] == 1:
+        plt.figure(qm_fig.number)
+        plt.subplot(nsbplt, nsbplt, i + 1)
+        plt.imshow(np.hstack((qm[s], np.zeros(n_rows * n_cols - len(qm)))).reshape(n_rows, n_cols))
+        plt.colorbar()
 
     plt.figure(w_fig.number)
     plt.subplot(nsbplt, nsbplt, i + 1)
     if "model.kern.weightedconv.W" in h.columns:
-        plt.imshow(h[~h.acc.isnull()]["model.kern.weightedconv.W"].iloc[-1].reshape(26, 26))
+        patch_weights = h[~h.acc.isnull()]["model.kern.weightedconv.W"].iloc[-1]
+        patch_weights_img_size = int(np.ceil(patch_weights.shape[-1] ** 0.5))
+        plt.imshow(patch_weights.reshape(patch_weights_img_size, patch_weights_img_size))
         plt.colorbar()
 
 plt.show()
