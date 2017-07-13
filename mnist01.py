@@ -1,6 +1,6 @@
 """
-vanilla_rectangles.py
-Run the convolutional GP on rectangles, using standard binary classification
+vanilla-mnist.py
+Run the convolutional GP on MNIST, using the standard multi-label classification output.
 """
 import argparse
 import itertools
@@ -15,22 +15,22 @@ import opt_tools
 import svconvgp.convkernels as ckern
 
 
-class RectanglesExperiment(exp_tools.ExperimentBase):
-    def __init__(self, name=None, M=6, run_settings=None):
-        name = "%s-%s%i" % (run_settings["dataset"], run_settings['kernel'], M) if name is None else name
-        super(RectanglesExperiment, self).__init__(name)
-        self.test_slice = np.s_[:3000]
+class Mnist01Experiment(exp_tools.MnistExperiment):
+    def __init__(self, name=None, M=100, run_settings=None):
+        name = "mnist01-%s%i" % (run_settings['kernel'], M) if name is None else name
+        super(Mnist01Experiment, self).__init__(name)
         self.run_settings = run_settings if run_settings is not None else {}
         self.M = M
 
     def setup_dataset(self, verbose=False):
-        if self.run_settings["dataset"] == "rectangles":
-            d = np.load('datasets/rectangles.npz')
-        elif self.run_settings["dataset"] == "rectangles-image":
-            d = np.load('datasets/rectangles_im.npz')
-        else:
-            raise NotImplementedError
-        self.X, self.Y, self.Xt, self.Yt = d['X'], d['Y'], d['Xtest'], d['Ytest']
+        super(Mnist01Experiment, self).setup_dataset()
+
+        def filter_01(X, Y):
+            lbls01 = np.logical_or(Y == 0, Y == 1).flatten()
+            return X[lbls01, :], Y[lbls01]
+
+        self.X, self.Y = filter_01(self.X, self.Y)
+        self.Xt, self.Yt = filter_01(self.Xt, self.Yt)
 
     def setup_model(self):
         Z = None
@@ -76,7 +76,7 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
         tasks = [
             opt_tools.tasks.DisplayOptimisation(opt_tools.seq_exp_lin(1.1, 20)),
             opt_tools.tasks.GPflowLogOptimisation(opt_tools.seq_exp_lin(1.1, 20)),
-            opt_tools.gpflow_tasks.GPflowBinClassTracker(self.Xt[self.test_slice, :], self.Yt[self.test_slice, :],
+            opt_tools.gpflow_tasks.GPflowBinClassTracker(self.Xt[:, :], self.Yt[:, :],
                                                          opt_tools.seq_exp_lin(1.1, 80, 3),
                                                          verbose=True, store_x="final_only",
                                                          store_x_columns=['model.kern.convrbf.basekern.lengthscales',
@@ -88,9 +88,8 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run rectangles experiment.')
-    parser.add_argument('-M', help="Number of inducing points", type=int)
-    parser.add_argument('--dataset', help="Dataset.", type=str, default="rectangles")
+    parser = argparse.ArgumentParser(description='Run mnist01 experiment.')
+    parser.add_argument('-M', help="Number of inducing points", type=int, default=10)
     parser.add_argument('--fixed', '-f', help="Fix the model hyperparameters.", action="store_true", default=False)
     parser.add_argument('--fixedZ', '-fZ', help="Fix the inducing inputs.", action="store_true", default=False)
     parser.add_argument('--name', '-n', help="Experiment name appendage.", type=str, default=None)
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     del run_settings['profile']
     del run_settings['no_opt']
     del run_settings['name']
-    exp = RectanglesExperiment(name=args.name, M=args.M, run_settings=run_settings)
+    exp = Mnist01Experiment(name=args.name, M=args.M, run_settings=run_settings)
 
     if args.profile:
         print("Profiling an iteration...")

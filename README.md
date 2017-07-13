@@ -42,11 +42,22 @@ python rectangles.py -k rbf -M 1200  # Compare to the optimal RBF
 python rectangles.py -k wconv -M 16 --minibatch-size 100 -l 0.01  # Full solution
 python rectangles.py -k conv -M 35 --minibatch-size 100 -l 0.01  # Full support on the GP
 python rectangles.py -k wconv -M 35 --minibatch-size 100 -l 0.01  # Idem
+python rectangles.py -k wconv -M 200 --minibatch-size 100 -l 0.01 --dataset rectangles-image --Zinit patches
 ```
 
 ### Mnist 0 vs 1
 ```
-python rectangles.py -k wconv -M 16 --minibatch-size 100 -l 0.01
+python mnist01.py -k rbf -M 20
+python mnist01.py -k conv -M 50
+python mnist01.py -k wconv -M 50
 ```
 
+### Mnist
+
 ## Paper
+
+## Notes on the code
+While the repositories for `gpflow-inter-domain` and `convgp` are separate, they rely on some modifications in each
+other. The most non-elegant adaptation to GPflow is to allow variables internal to the TensorFlow optimiser to be
+restored through opt_tools. The whole set up is a bit less than ideal, it would probably be better to use the internal
+TensorFlow loading and storing mechanisms, but this would require larger edits to GPflow.
