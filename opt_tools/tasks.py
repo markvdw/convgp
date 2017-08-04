@@ -2,6 +2,7 @@ import itertools
 import sys
 import time
 import warnings
+import re
 
 import numpy as np
 import pandas as pd
@@ -129,7 +130,9 @@ class LogOptimisation(OptimisationIterationEvent):
             if self._store_x_columns is None:
                 hist.iloc[:, ['model.' in c for c in hist.columns]] = np.nan
             else:
-                hist.iloc[:, [c not in self._store_x_columns and 'model.' in c for c in hist.columns]] = np.nan
+                # hist.iloc[:, [c not in self._store_x_columns and 'model.' in c for c in hist.columns]] = np.nan
+                keep_cols = list(filter(re.compile(self._store_x_columns).match, list(hist.columns)))
+                hist.iloc[:, [c not in keep_cols and 'model.' in c for c in hist.columns]] = np.nan
         elif self._store_x not in [None, True]:
             raise ValueError("Unknown value for store_x: %s." % str(self._store_x))
 

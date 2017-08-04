@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument('--optimiser', help="Optimiser.", default="adam")
     parser.add_argument('--no-opt', help="Do not optimise.", action="store_true", default=False)
     parser.add_argument('--kernel', '-k', help="Kernel.")
-    parser.add_argument('--Zinit', help="Inducing patches init.", default="random", type=str)
+    parser.add_argument('--Zinit', help="Inducing patches init.", default="patches-unique", type=str)
     parser.add_argument('--kernel-ard', help="Switch ARD on in the kernel.", default=False, action="store_true")
     args = parser.parse_args()
 

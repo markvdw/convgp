@@ -54,7 +54,7 @@ class GPflowBinClassTracker(GPflowBenchmarkTrackerBase):
 
         p, var = logger.model.predict_y(self.test_X)
         acc = ((p > 0.5).astype('float') == self.test_Y).mean()
-        nlpp = -np.mean(np.log(p) * self.test_Y + np.log(1 - p) * (1 - self.test_Y))
+        nlpp = -np.mean(np.log(p) * self.test_Y + np.log(1 - p) ** (1 - self.test_Y))
         log_dict.update({'acc': acc, 'err': 1 - acc, 'nlpp': nlpp})
 
         if self.verbose:

@@ -9,6 +9,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 
 import GPflow
+import GPflow.minibatch as mb
 import opt_tools
 
 
@@ -74,7 +75,7 @@ class ExperimentBase(object):
         self.setup_logger(verbose)
         return self.m, self.logger
 
-    def run(self):
+    def run(self, maxiter=np.inf):
         optimiser = self.run_settings.get("optimiser", "adam")
         if optimiser == "adam":
             opt_method = tf.train.AdamOptimizer(self.run_settings['learning_rate'])
@@ -86,7 +87,7 @@ class ExperimentBase(object):
         self.opt_method = opt_method
 
         try:
-            return self.logger.optimize(method=opt_method, maxiter=np.inf, opt_options=self.run_settings)
+            return self.logger.optimize(method=opt_method, maxiter=maxiter, opt_options=self.run_settings)
         finally:
             self.logger.finish(self.m.get_free_state())
 
@@ -148,3 +149,48 @@ class RectanglesImageExperiment(ExperimentBase):
     def setup_dataset(self, verbose=False):
         d = np.load('datasets/rectangles_im.npz')
         self.X, self.Y, self.Xt, self.Yt = d['X'], d['Y'], d['Xtest'], d['Ytest']
+
+
+def calculate_large_batch_lml(m, minibatch_size, batches, progress=False):
+    """
+    This does not work properly yet, presumably because it changes the state (w.r.t. _parent) of the model.
+    """
+    assert type(batches) == int, "`batches` must be an integer."
+    old_mbX = m.X
+    old_mbY = m.Y
+    m.X = mb.MinibatchData(m.X.value, minibatch_size,
+                           batch_manager=mb.SequenceIndices(minibatch_size, m.X.value.shape[0]))
+    m.Y = mb.MinibatchData(m.Y.value, minibatch_size,
+                           batch_manager=mb.SequenceIndices(minibatch_size, m.X.value.shape[0]))
+    m._kill_autoflow()
+
+    batch_lmls = []
+    if progress:
+        from tqdm import tqdm
+        for _ in tqdm(range(batches)):
+            batch_lmls.append(m.compute_log_likelihood())
+    else:
+        for _ in range(batches):
+            batch_lmls.append(m.compute_log_likelihood())
+
+    m.X = old_mbX
+    m.Y = old_mbY
+
+    m._kill_autoflow()
+
+    return np.mean(batch_lmls)
+
+
+class CalculateFullLMLMixin(object):
+    def _get_record(self, logger, x, f=None):
+        log_dict = super(CalculateFullLMLMixin, self)._get_record(logger, x, f)
+        model = logger.model
+        minibatch_size = logger.model.X.index_manager.minibatch_size
+        log_dict.update(
+            {"lml": calculate_large_batch_lml(model, minibatch_size, model.X.shape[0] // minibatch_size, True)})
+        return log_dict
+
+
+class GPflowMultiClassificationTrackerLml(CalculateFullLMLMixin,
+                                          opt_tools.gpflow_tasks.GPflowMultiClassificationTracker):
+    pass

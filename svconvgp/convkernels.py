@@ -69,8 +69,12 @@ class Conv(GPflow.kernels.Kern):
         if method == "default" or method == "random":
             patches = self.compute_patches(X[np.random.permutation(len(X))[:M], :]).reshape(-1, self.patch_len)
             Zinit = patches[np.random.permutation(len(patches))[:M], :]
-            Zinit += np.random.rand(*Zinit.shape) * 0.01
+            Zinit += np.random.rand(*Zinit.shape) * 0.001
             return Zinit
+        elif method == "patches-unique":
+            patches = np.unique(self.compute_patches(
+                X[np.random.permutation(len(X))[:M], :]).reshape(-1, self.patch_len), axis=0)
+            return patches[np.random.permutation((len(patches)))[:M], :]
         else:
             raise NotImplementedError
 

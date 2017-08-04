@@ -1,6 +1,9 @@
 # convgp
 Code for running Gaussian processes with convolutional and symmetric structures. The code is currently being cleaned up
-and will be continuously published over the next week or so.
+and will be continuously published over the next week or so. Things that you can expect to come:
+- stored trained models,
+- code to replicate the figures in the paper,
+- detailed commands to replicate the exact experiments in the paper.
 
 ## Paper
 The accompanying paper can be found on [arXiv](https://arxiv.org/to_be_published).
@@ -30,6 +33,7 @@ We have the following experiments:
  - `rectangles.py`: Rectangles dataset (rbf, conv, and weighted conv kernels).
  - `mnist01.py`: Zeros vs ones MNIST (rbf, conv, and weighted conv kernels).
  - `mnist.py`: Full multiclass MNIST (rbf, conv, and weighted conv kernels).
+ - `sumkern_mnist.py`: Full multiclass MNIST (rbf + conv / wconv, rbf + poly + conv / wconv).
  
 Many experiments have several command line options that can be used to modify a run. All have `--name`, which determines
 the name of the file in `./results/` that stores the optimisation trace. Experiments are resumed if a file of the
@@ -64,6 +68,7 @@ python mnist01.py -k wconv -M 50
 python mnist.py -k rbf -M 750 -l 0.001  # Replicate earlier experiments with RBF kernel
 python mnist.py -k conv -M 750 -l 0.001 --minibatch-size 200
 python mnist.py -k wconv -M 750 -l 0.001 --minibatch-size 200
+python sumkern_mnist.py -k1 conv -k2 rbf -M 750 --vardist full
 ```
 
 ## Reproducing the plots from the paper

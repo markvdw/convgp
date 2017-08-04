@@ -45,6 +45,15 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
         elif self.run_settings['kernel'] == "wconv":
             k = ckern.WeightedConv(GPflow.kernels.RBF(9, ARD=self.run_settings['kernel_ard']), [28, 28],
                                    [3, 3]) + GPflow.kernels.White(1, 1e-3)
+        elif self.run_settings['kernel'] == "wconv-add":
+            basekern = (GPflow.kernels.RBF(9) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[0:3]) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[3:6]) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[6:9]) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[0:7:3]) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[1:8:3]) +
+                        GPflow.kernels.RBF(3, active_dims=np.s_[2:9:3]))
+            k = ckern.WeightedConv(basekern, [28, 28], [3, 3]) + GPflow.kernels.White(1, 1e-3)
         else:
             raise NotImplementedError
 
@@ -79,8 +88,7 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
             opt_tools.gpflow_tasks.GPflowBinClassTracker(self.Xt[self.test_slice, :], self.Yt[self.test_slice, :],
                                                          opt_tools.seq_exp_lin(1.1, 80, 3),
                                                          verbose=True, store_x="final_only",
-                                                         store_x_columns=['model.kern.convrbf.basekern.lengthscales',
-                                                                          'model.kern.convrbf.basekern.variance'],
+                                                         store_x_columns='.*(variance|lengthscales)',
                                                          old_hist=h),
             opt_tools.tasks.StoreOptimisationHistory(self.hist_path, itertools.count(0, 60), verbose=False)
         ]

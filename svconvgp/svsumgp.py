@@ -22,7 +22,8 @@ class MeanFieldSVSumGP(GPflow.svgp.SVGP):
         q_sqrt = np.array(
             [np.eye(self.num_inducing) for _ in range(self.num_latent * 2)]
         ).swapaxes(0, 2).reshape(self.num_inducing, self.num_inducing, self.num_latent * 2)
-        self.q_sqrt = GPflow.param.Param(q_sqrt)
+        self.q_sqrt = GPflow.param.Param(q_sqrt,
+                                         GPflow.transforms.LowerTriangular(self.num_inducing, self.num_latent * 2))
 
     def build_predict(self, Xnew, full_cov=False):
         mus = []
@@ -50,7 +51,8 @@ class FullSVSumGP(MeanFieldSVSumGP):
         q_sqrt = np.array(
             [np.eye(self.num_inducing * 2) for _ in range(self.num_latent)]
         ).swapaxes(0, 2).reshape(self.num_inducing * 2, self.num_inducing * 2, self.num_latent)
-        self.q_sqrt = GPflow.param.Param(q_sqrt)
+        self.q_sqrt = GPflow.param.Param(q_sqrt,
+                                         GPflow.transforms.LowerTriangular(self.num_inducing * 2, self.num_latent))
 
     def build_predict(self, Xnew, full_cov=False):
         num_data = tf.shape(self.Z1)[0]
