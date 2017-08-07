@@ -7,6 +7,11 @@ float_type = GPflow.settings.dtypes.float_type
 
 
 class Conv(GPflow.kernels.Kern):
+    """
+    Conv
+    Plain convolutional kernel.
+    """
+
     def __init__(self, basekern, img_size, patch_size, colour_channels=1):
         GPflow.kernels.Kern.__init__(self, np.prod(img_size))
         self.img_size = img_size
@@ -17,7 +22,7 @@ class Conv(GPflow.kernels.Kern):
 
     def _get_patches(self, X):
         """
-        Extracts patches from the images X.
+        Extracts patches from the images X. Patches are extracted separately for each of the colour channels.
         :param X: (N x input_dim)
         :return: Patches (N, num_patches, patch_size)
         """
@@ -25,6 +30,10 @@ class Conv(GPflow.kernels.Kern):
         #     tf.reshape(tf.cast(X, tf.float32, name="castX"), tf.stack([tf.shape(X)[0], -1, self.colour_channels])),
         #     [0, 2, 1])
         # castX = tf.cast(X, tf.float32, name="castX")
+
+        # Roll the colour channel to the front, so it appears to `tf.extract_image_patches()` as separate images. Then
+        # extract patches and reshape to have the first axis the same as the number of images. The separate patches will
+        # then be in the second axis.
         castX = tf.transpose(
             tf.reshape(X, tf.stack([tf.shape(X)[0], -1, self.colour_channels])),
             [0, 2, 1])
@@ -172,7 +181,9 @@ class WeightedConv(Conv):
 
 
 class WeightedMultiChannelConv(MultiChannelConv, WeightedConv):
-    pass
+    def __init__(self, basekern, img_size, patch_size, colour_channels=1):
+        WeightedConv.__init__(self, basekern, img_size, patch_size, colour_channels)
+        MultiChannelConv.__init__(self, basekern, img_size, patch_size, colour_channels)
 
 
 class ConvRBF(Conv):
