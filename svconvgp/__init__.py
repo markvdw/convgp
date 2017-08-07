@@ -1,2 +1,2 @@
-from .svconvgp import SVConvGP
+from . import svsumgp
 from . import convkernels

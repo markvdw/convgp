@@ -14,6 +14,7 @@ class MeanFieldSVSumGP(GPflow.svgp.SVGP):
         super(MeanFieldSVSumGP, self).__init__(X, Y, None, likelihood, Z1.copy(), mean_function, num_latent, q_diag,
                                                whiten, minibatch_size)
         del self.Z
+        del self.kern
         self.kern1 = k1  # For now, just hard-code two kernels
         self.kern2 = k2
         self.Z1 = GPflow.param.Param(Z1)
@@ -47,22 +48,21 @@ class FullSVSumGP(MeanFieldSVSumGP):
                  num_latent=None, q_diag=False, whiten=True, minibatch_size=None):
         super(FullSVSumGP, self).__init__(X, Y, k1, k2, likelihood, Z1, Z2, mean_function, num_latent, q_diag, whiten,
                                           minibatch_size)
-        self.q_mu = GPflow.param.Param(np.zeros((self.Z1.shape[0] * 2, self.num_latent)))
+        del self.num_inducing
+        inducing_variables = self.Z1.shape[0] + self.Z2.shape[0]
+        self.q_mu = GPflow.param.Param(np.zeros((inducing_variables, self.num_latent)))
         q_sqrt = np.array(
-            [np.eye(self.num_inducing * 2) for _ in range(self.num_latent)]
-        ).swapaxes(0, 2).reshape(self.num_inducing * 2, self.num_inducing * 2, self.num_latent)
-        self.q_sqrt = GPflow.param.Param(q_sqrt,
-                                         GPflow.transforms.LowerTriangular(self.num_inducing * 2, self.num_latent))
+            [np.eye(inducing_variables) for _ in range(self.num_latent)]
+        ).swapaxes(0, 2).reshape(inducing_variables, inducing_variables, self.num_latent)
+        self.q_sqrt = GPflow.param.Param(q_sqrt, GPflow.transforms.LowerTriangular(inducing_variables, self.num_latent))
 
     def build_predict(self, Xnew, full_cov=False):
-        num_data = tf.shape(self.Z1)[0]
-
         Kmn1 = self.kern1.Kzx(self.Z1, Xnew)
-        Kmm1 = self.kern1.Kzz(self.Z1) + tf.eye(num_data, dtype=float_type) * settings.numerics.jitter_level
+        Kmm1 = self.kern1.Kzz(self.Z1) + tf.eye(tf.shape(self.Z1)[0], dtype=float_type) * settings.numerics.jitter_level
         Lm1 = tf.cholesky(Kmm1)
 
         Kmn2 = self.kern2.Kzx(self.Z2, Xnew)
-        Kmm2 = self.kern2.Kzz(self.Z2) + tf.eye(num_data, dtype=float_type) * settings.numerics.jitter_level
+        Kmm2 = self.kern2.Kzz(self.Z2) + tf.eye(tf.shape(self.Z2)[0], dtype=float_type) * settings.numerics.jitter_level
         Lm2 = tf.cholesky(Kmm2)
 
         A1 = tf.matrix_triangular_solve(Lm1, Kmn1)
