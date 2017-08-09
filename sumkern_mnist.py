@@ -81,7 +81,8 @@ if __name__ == "__main__":
     parser.add_argument('--fixed', '-f', help="Fix the model hyperparameters.", action="store_true", default=False)
     parser.add_argument('--name', '-n', help="Experiment name appendage.", type=str, default=None)
     parser.add_argument('--learning-rate', '-l', help="Learning rate.", type=str, default="0.001")
-    parser.add_argument('--learning-rate-block-iters', type=int, default=3600)
+    parser.add_argument('--learning-rate-block-iters', type=int, default=3600,
+                        help="How many iterations to use in a run with a single learning rate.")
     parser.add_argument('--profile', help="Only run a quick profile of an iteration.", action="store_true",
                         default=False)
     parser.add_argument('--no-opt', help="Do not optimise.", action="store_true", default=False)
@@ -116,13 +117,15 @@ if __name__ == "__main__":
         while True:
             print(exp.experiment_name)
             i = pd.read_pickle(exp.hist_path).i.max() if os.path.exists(exp.hist_path) else 1.0
-            run_settings['learning_rate'] = eval(args.learning_rate)  # Can use i in learning_rate
+            b = args.learning_rate_block_iters
+            print("learning rate: %s" % args.learning_rate)
+            run_settings['learning_rate'] = eval(args.learning_rate)  # Can use i and b in learning_rate
             print(run_settings['learning_rate'], i)
             exp.setup()
             rndstate = np.random.randint(0, 1e9)
             exp.m.X.index_manager.rng = np.random.RandomState(rndstate)
             exp.m.Y.index_manager.rng = np.random.RandomState(rndstate)
-            exp.run(maxiter=args.learning_rate_schedule_const)
+            exp.run(maxiter=args.learning_rate_block_iters)
 
     if args.benchmarks:
         exp.setup()
@@ -138,4 +141,3 @@ if __name__ == "__main__":
         lml = exp_tools.calculate_large_batch_lml(exp.m, args.minibatch_size, exp.m.X.shape[0] // args.minibatch_size,
                                                   progress=True)
         print(lml)
-

@@ -186,8 +186,9 @@ class CalculateFullLMLMixin(object):
         log_dict = super(CalculateFullLMLMixin, self)._get_record(logger, x, f)
         model = logger.model
         minibatch_size = logger.model.X.index_manager.minibatch_size
-        log_dict.update(
-            {"lml": calculate_large_batch_lml(model, minibatch_size, model.X.shape[0] // minibatch_size, True)})
+        lml = calculate_large_batch_lml(model, minibatch_size, model.X.shape[0] // minibatch_size, True)
+        print("full lml: %f" % lml)
+        log_dict.update({"lml": lml})
         return log_dict
 
 

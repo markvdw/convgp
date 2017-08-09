@@ -105,7 +105,7 @@ class LogOptimisation(OptimisationIterationEvent):
         log_dict = dict(zip(
             self._get_hist(logger).columns,
             (logger._i, logger._opt_timer.elapsed_time, logger._total_timer.elapsed_time, f, np.linalg.norm(g),
-             g if self._store_fullg else 0.0, x.copy() if self._store_x is not None else None)
+             g if self._store_fullg else np.nan, x.copy() if self._store_x is not None else None)
         ))
         if logger._opt_options is not None:
             log_dict.update(logger._opt_options)
@@ -123,8 +123,8 @@ class LogOptimisation(OptimisationIterationEvent):
         :return: None
         """
         hist = self._get_hist(logger)
-        if len(hist) > 0 and hist.iloc[-1, :].i == logger._i:
-            hist = hist.iloc[:-1, :]
+        # if len(hist) > 0 and hist.iloc[-1, :].i == logger._i:
+        #     hist = hist.iloc[:-1, :]
 
         if self._store_x == "final_only":
             if self._store_x_columns is None:
@@ -183,7 +183,7 @@ class GPflowLogOptimisation(LogOptimisation):
         log_dict = dict(zip(
             self._get_hist(logger).columns[:7],
             (logger._i, logger.model.num_fevals, logger._opt_timer.elapsed_time, logger._total_timer.elapsed_time, f,
-             np.linalg.norm(g), g if self._store_fullg else 0.0)
+             np.linalg.norm(g), g if self._store_fullg else np.nan)
         ))
         if self._store_x is not None:
             log_dict.update(logger.model.get_samples_df(x[None, :].copy()).iloc[0, :].to_dict())

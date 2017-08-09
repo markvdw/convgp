@@ -29,6 +29,13 @@ class MnistExperiment(exp_tools.MnistExperiment):
         if self.run_settings['kernel'] == "rbf":
             k = GPflow.kernels.RBF(28 * 28)
             Z = self.X[np.random.permutation(len(self.X))[:self.M], :]
+        elif self.run_settings['kernel'] == "poly":
+            k = GPflow.kernels.Polynomial(28 * 28, degree=9.0)
+            Z = self.X[np.random.permutation(len(self.X))[:self.M], :]
+        elif self.run_settings['kernel'] == "rbfpoly":
+            k = (GPflow.kernels.Polynomial(28 * 28, degree=9.0) + GPflow.kernels.RBF(28 * 28) +
+                 GPflow.kernels.White(28 * 28, 1e-1))
+            Z = self.X[np.random.permutation(len(self.X))[:self.M], :]
         elif self.run_settings["kernel"] == "conv":
             k = ckern.ConvRBF([28, 28], [5, 5]) + GPflow.kernels.White(1, 1e-3)
         elif self.run_settings['kernel'] == "wconv":
@@ -99,6 +106,7 @@ if __name__ == "__main__":
 
     if args.profile:
         print("Profiling an iteration...")
+        exp.setup()
         exp.profile()
     elif not args.no_opt:
         print(exp.experiment_name)

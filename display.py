@@ -37,7 +37,7 @@ plt.figure()
 for h in hs:
     if 'lml' in h.columns:
         f = h[~(h.lml == 0.0) & ~np.isnan(h.lml)]
-        plt.plot(f.t / 3600, f.lml)
+        plt.plot(f.t / 3600, f.lml, '-')
 
 plt.figure()
 for i, h in enumerate(hs):
@@ -45,7 +45,8 @@ for i, h in enumerate(hs):
     # f = h[~h.err.isnull()].filter(regex="model.kern.convrbf.basek*")
     ss = h[~h.err.isnull()]
     f = ss.filter(regex=".*(lengthscales)")
-    plt.plot(f, color="C%i" % i)
+    if f.shape[1] > 0:
+        plt.plot(f, color="C%i" % i)
     f = ss.filter(regex=".*(variance)")
     plt.plot(f, color="C%i" % i, alpha=0.5)
     # f = h.filter(regex="model.kern.convrbf.basek*")
@@ -77,6 +78,10 @@ plt.xlabel("Time (hrs)")
 plt.ylabel("nlpp")
 if args.logscale:
     plt.xscale('log')
+
+plt.figure()
+for h in hs:
+    plt.plot(h.t / h.tt)
 
 
 def reshape_patches_for_plot(patches):

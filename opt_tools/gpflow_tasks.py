@@ -58,7 +58,7 @@ class GPflowBinClassTracker(GPflowBenchmarkTrackerBase):
         log_dict.update({'acc': acc, 'err': 1 - acc, 'nlpp': nlpp})
 
         if self.verbose:
-            print("Benchmarks took %.2fs (err: %.4f)." % (time.time() - st, 1 - acc))
+            print("Benchmarks took %.2fs (err: %.4f, nlpp: %.4f)." % (time.time() - st, 1 - acc, nlpp))
 
         return log_dict
 
@@ -85,6 +85,6 @@ class GPflowMultiClassificationTracker(GPflowBenchmarkTrackerBase):
         log_dict.update({'acc': acc, 'err': 1 - acc, 'nlpp': nlpp})
 
         if self.verbose:
-            print("Benchmarks took %.2fs (err: %.4f)." % (time.time() - st, 1 - acc))
+            print("Benchmarks took %.2fs (err: %.4f, nlpp: %.4f)." % (time.time() - st, 1 - acc, nlpp))
 
         return log_dict
