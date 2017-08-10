@@ -68,8 +68,17 @@ python mnist01.py -k wconv -M 50
 python mnist.py -k rbf -M 750 -l 0.001  # Replicate earlier experiments with RBF kernel
 python mnist.py -k conv -M 750 -l 0.001 --minibatch-size 200
 python mnist.py -k wconv -M 750 -l 0.001 --minibatch-size 200
-python sumkern_mnist.py -k1 conv -k2 rbf -M 750 --vardist full
+python sumkern_mnist.py -k1 wconv -k2 rbf -M 750 --vardist full --learning-rate-block-iters=20000 --learning-rate 0.001 * 10**-(i // b / 3) --minibatch-size 200
 ```
+The learning rate decay of the sum kernel experiment is set too aggressively for convergence of the variational
+objective function. However, this rate was chosen as it repeatably converges to the (near-optimal) performance reported
+in the paper with 24 hours of time on a GTX1080. We also ran the experiment for several times longer, which showed
+little improvement in performance and no signs of over-fitting.
+
+#### CIFAR-10
+```
+```
+
 
 ## Reproducing the plots from the paper
 After running the above experiments, you can run `python paper-plots.py` to recreate the figures from the paper.

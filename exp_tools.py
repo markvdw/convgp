@@ -136,7 +136,7 @@ class CifarExperiment(ExperimentBase):
 
     def img_plot(self, i):
         import matplotlib.pyplot as plt
-        plt.imshow(self.X[i, :].reshape(3, 32, 32).transpose([1, 2, 0]))
+        plt.imshow(self.X[i, :].reshape(32, 32, 3))
 
 
 class MnistExperiment(ExperimentBase):

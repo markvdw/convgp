@@ -26,6 +26,7 @@ for h, f in zip(hs, args.hist_file):
     plt.subplot(212)
     plt.plot(idx, h.learning_rate)
     plt.ylabel("Learning rate")
+    plt.yscale('log')
 plt.subplot(211)
 plt.legend()
 plt.xlabel("Time (hrs)")
@@ -118,10 +119,13 @@ for i, h in enumerate(hs):
     else:
         s = np.arange(len(Zend))
 
-    patch_image, n_rows, n_cols = reshape_patches_for_plot(1 - Zend.reshape(-1, patch_size, patch_size)[s, :, :])
-    plt.imshow(patch_image, cmap="gray")
-    plt.clim(-0.25, 1.25)
-    plt.colorbar()
+    try:
+        patch_image, n_rows, n_cols = reshape_patches_for_plot(1 - Zend.reshape(-1, patch_size, patch_size)[s, :, :])
+        plt.imshow(patch_image, cmap="gray")
+        plt.clim(-0.25, 1.25)
+        plt.colorbar()
+    except:
+        pass
 
     if qmu.shape[1] == 1:
         plt.figure(qm_fig.number)
@@ -134,8 +138,14 @@ for i, h in enumerate(hs):
     Wseries = h[~h.acc.isnull()].iloc[-1].filter(regex=".*.W")
     if len(Wseries) >= 1:
         patch_weights = Wseries[0]
-        patch_weights_img_size = int(np.ceil(patch_weights.shape[-1] ** 0.5))
-        plt.imshow(patch_weights.reshape(patch_weights_img_size, patch_weights_img_size))
+        patch_h = int(np.ceil(patch_weights.shape[-1] ** 0.5))
+        if patch_h ** 2.0 != patch_weights.shape[-1]:
+            patch_h = int(np.ceil((patch_weights.shape[-1] / 3) ** 0.5))
+            patch_w = int(patch_weights.shape[-1] / patch_h)
+            plt.imshow(patch_weights.reshape(3, patch_h, patch_h).transpose(1, 0, 2).reshape(patch_h, patch_w))
+        else:
+            plt.imshow(patch_weights.reshape(patch_h, patch_h))
+
         plt.colorbar()
 
 plt.show()
