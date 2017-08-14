@@ -68,7 +68,10 @@ python mnist01.py -k wconv -M 50
 python mnist.py -k rbf -M 750 -l 0.001  # Replicate earlier experiments with RBF kernel
 python mnist.py -k conv -M 750 -l 0.001 --minibatch-size 200
 python mnist.py -k wconv -M 750 -l 0.001 --minibatch-size 200
-python sumkern_mnist.py -k1 wconv -k2 rbf -M 750 --vardist full --learning-rate-block-iters=20000 --learning-rate 0.001 * 10**-(i // b / 3) --minibatch-size 200
+python sumkern_mnist.py -k1 wconv -k2 rbf -M 750 --vardist full --learning-rate-block-iters=20000 --learning-rate "0.001 * 10**-(i // b / 3) --minibatch-size 200
+python mnist.py -k conv -M 750 --learning-rate-block-iters=30000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
+python mnist.py -k wconv -M 750 --learning-rate-block-iters=30000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
+python mnist.py -k rbf -M 750 --learning-rate-block-iters=60000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
 ```
 The learning rate decay of the sum kernel experiment is set too aggressively for convergence of the variational
 objective function. However, this rate was chosen as it repeatably converges to the (near-optimal) performance reported
@@ -77,6 +80,9 @@ little improvement in performance and no signs of over-fitting.
 
 #### CIFAR-10
 ```
+python cifar.py -k wconv -M 1000 --minibatch-size 50
+python cifar.py -k multi -M 1000 --minibatch-size 30
+python cifar.py -k addwconv -M 1000 --minibatch-size 30
 ```
 
 

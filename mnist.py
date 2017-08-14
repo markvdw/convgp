@@ -14,7 +14,7 @@ import pandas as pd
 import GPflow
 import exp_tools
 import opt_tools
-import svconvgp.convkernels as ckern
+import convgp.convkernels as ckern
 
 
 class MnistExperiment(exp_tools.MnistExperiment):
@@ -79,9 +79,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run MNIST experiment.')
     parser.add_argument('--fixed', '-f', help="Fix the model hyperparameters.", action="store_true", default=False)
     parser.add_argument('--name', '-n', help="Experiment name appendage.", type=str, default=None)
-    parser.add_argument('--learning-rate', '-l', help="Learning rate.", type=float, default=0.001)
-    parser.add_argument('--learning-rate-pow', type=float, default=0.5)
-    parser.add_argument('--learning-rate-schedule-const', type=int, default=3600)
+    parser.add_argument('--learning-rate', '-l', help="Learning rate.", type=str, default="0.001")
+    parser.add_argument('--learning-rate-block-iters', type=int, default=50000,
+                        help="How many iterations to use in a run with a single learning rate.")
     parser.add_argument('--profile', help="Only run a quick profile of an iteration.", action="store_true",
                         default=False)
     parser.add_argument('--no-opt', help="Do not optimise.", action="store_true", default=False)
@@ -109,18 +109,19 @@ if __name__ == "__main__":
         exp.setup()
         exp.profile()
     elif not args.no_opt:
-        print(exp.experiment_name)
         lr_base = run_settings['learning_rate']
         while True:
+            print(exp.experiment_name)
             i = pd.read_pickle(exp.hist_path).i.max() if os.path.exists(exp.hist_path) else 1.0
-            run_settings['learning_rate'] = (
-                                                1 + i // args.learning_rate_schedule_const) ** -args.learning_rate_pow * lr_base
+            b = args.learning_rate_block_iters
+            print("learning rate: %s" % args.learning_rate)
+            run_settings['learning_rate'] = eval(args.learning_rate)  # Can use i and b in learning_rate
             print(run_settings['learning_rate'], i)
             exp.setup()
             rndstate = np.random.randint(0, 1e9)
             exp.m.X.index_manager.rng = np.random.RandomState(rndstate)
             exp.m.Y.index_manager.rng = np.random.RandomState(rndstate)
-            exp.run(maxiter=args.learning_rate_schedule_const)
+            exp.run(maxiter=args.learning_rate_block_iters)
 
     if args.benchmarks:
         exp.setup()

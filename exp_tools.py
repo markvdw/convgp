@@ -178,6 +178,9 @@ def calculate_large_batch_lml(m, minibatch_size, batches, progress=False):
 
     m._kill_autoflow()
 
+    import gc
+    gc.collect()
+
     return np.mean(batch_lmls)
 
 
@@ -195,3 +198,13 @@ class CalculateFullLMLMixin(object):
 class GPflowMultiClassificationTrackerLml(CalculateFullLMLMixin,
                                           opt_tools.gpflow_tasks.GPflowMultiClassificationTracker):
     pass
+
+
+class GPflowTrackLml(opt_tools.tasks.GPflowLogOptimisation):
+    def _get_record(self, logger, x, f=None):
+        model = logger.model
+        minibatch_size = logger.model.X.index_manager.minibatch_size
+        lml = calculate_large_batch_lml(model, minibatch_size, model.X.shape[0] // minibatch_size, True)
+        print("full lml: %f" % lml)
+        return {"i": logger._i, "t": logger.model.num_fevals, "t": logger._opt_timer.elapsed_time,
+                "tt": logger._total_timer.elapsed_time, "lml": lml}

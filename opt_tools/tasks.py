@@ -22,15 +22,15 @@ class OptimisationIterationEvent(object):
 
     def __call__(self, logger, x, final=False):
         if ((self._trigger == "iter" and logger._i >= self._next) or
-                (self._trigger == "time" and logger._total_timer.elapsed_time >= self._next) or
+                (self._trigger == "time" and logger._opt_timer.elapsed_time >= self._next) or
                 final):
             self._event_handler(logger, x, final)
-            self._next = next(self._seq)
-            for _ in range(1000000):
-                if self._next < (logger._i if self._trigger == "iter" else logger._total_timer.elapsed_time):
+            while True:
+                if self._next < (logger._i if self._trigger == "iter" else logger._opt_timer.elapsed_time):
                     self._next = next(self._seq)
                 else:
                     break
+            self._next = next(self._seq)
 
 
 class DisplayOptimisation(OptimisationIterationEvent):

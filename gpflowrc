@@ -22,3 +22,6 @@ each_time = False
 [session]
 intra_op_parallelism_threads = 0
 inter_op_parallelism_threads = 0
+
+[xla]
+jit = off

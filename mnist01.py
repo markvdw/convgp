@@ -12,7 +12,7 @@ import pandas as pd
 import GPflow
 import exp_tools
 import opt_tools
-import svconvgp.convkernels as ckern
+import convgp.convkernels as ckern
 
 
 class Mnist01Experiment(exp_tools.MnistExperiment):

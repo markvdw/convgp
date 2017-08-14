@@ -12,8 +12,8 @@ import pandas as pd
 import GPflow
 import exp_tools
 import opt_tools
-import svconvgp.convkernels as ckern
-from svconvgp.svsumgp import MeanFieldSVSumGP, FullSVSumGP
+import convgp.convkernels as ckern
+from convgp.svsumgp import MeanFieldSVSumGP, FullSVSumGP
 
 
 class ChooseMnistExperiment(exp_tools.MnistExperiment):

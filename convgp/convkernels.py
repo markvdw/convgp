@@ -105,7 +105,7 @@ class Conv(GPflow.kernels.Kern):
         return self.Kzx(Z, X)
 
 
-class MultiChannelConv(Conv):
+class ColourPatchConv(Conv):
     def __init__(self, basekern, img_size, patch_size, colour_channels=1):
         Conv.__init__(self, basekern, img_size, patch_size, colour_channels)
         self.basekern.input_dim = np.prod(patch_size) * self.colour_channels
@@ -180,10 +180,10 @@ class WeightedConv(Conv):
         # return tf.transpose(tf.map_fn(Kzx_n, Xp))
 
 
-class WeightedMultiChannelConv(MultiChannelConv, WeightedConv):
+class WeightedColourPatchConv(ColourPatchConv, WeightedConv):
     def __init__(self, basekern, img_size, patch_size, colour_channels=1):
         WeightedConv.__init__(self, basekern, img_size, patch_size, colour_channels)
-        MultiChannelConv.__init__(self, basekern, img_size, patch_size, colour_channels)
+        ColourPatchConv.__init__(self, basekern, img_size, patch_size, colour_channels)
 
 
 class ConvRBF(Conv):

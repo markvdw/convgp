@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 import GPflow
-import svconvgp.convkernels as ckernels
+import convgp.convkernels as ckernels
 
 
 class TestConvRBF(unittest.TestCase):
@@ -40,9 +40,12 @@ class TestConvRBF(unittest.TestCase):
 
 class TestGeneral(unittest.TestCase):
     def setUp(self):
+        wconv = ckernels.WeightedConv(GPflow.kernels.RBF(4), [3, 3], [2, 2])
+        mcwconv = ckernels.WeightedMultiChannelConvGP(GPflow.kernels.RBF(4), [3, 3], [2, 2])
         self.kernels = [ckernels.Conv(GPflow.kernels.RBF(4), [3, 3], [2, 2]),
-                        ckernels.WeightedConv(GPflow.kernels.RBF(4), [3, 3], [2, 2]),
-                        ckernels.ConvRBF([3, 3], [2, 2])]
+                        wconv,
+                        ckernels.ConvRBF([3, 3], [2, 2]),
+                        mcwconv]
 
     def test_diag_consistency(self):
         X = np.random.randn(3, 3 * 3)
@@ -65,8 +68,8 @@ class TestColourChannels(unittest.TestCase):
         self.imgs = 4
         self.k1 = ckernels.Conv(GPflow.kernels.RBF(self.psz * self.psz), [self.isz, self.isz], [self.psz, self.psz],
                                 colour_channels=2)
-        self.k2 = ckernels.MultiChannelConv(GPflow.kernels.RBF(self.psz * self.psz * 2), [self.isz, self.isz],
-                                            [self.psz, self.psz], colour_channels=2)
+        self.k2 = ckernels.ColourPatchConv(GPflow.kernels.RBF(self.psz * self.psz * 2), [self.isz, self.isz],
+                                           [self.psz, self.psz], colour_channels=2)
         base_img = np.arange(self.imgs * self.isz * self.isz).reshape(self.imgs, self.isz * self.isz, 1)
         self.X = np.concatenate((base_img, base_img + 0.25), -1)
 
@@ -100,9 +103,9 @@ class TestColourChannels(unittest.TestCase):
 class TestWeightedConv(unittest.TestCase):
     def setUp(self):
         self.ks = [ckernels.Conv(GPflow.kernels.RBF(4), [3, 3], [2, 2], colour_channels=2),
-                   ckernels.MultiChannelConv(GPflow.kernels.RBF(8), [3, 3], [2, 2], colour_channels=2)]
+                   ckernels.ColourPatchConv(GPflow.kernels.RBF(8), [3, 3], [2, 2], colour_channels=2)]
         self.wks = [ckernels.WeightedConv(GPflow.kernels.RBF(4), [3, 3], [2, 2], colour_channels=2),
-                    ckernels.WeightedMultiChannelConv(GPflow.kernels.RBF(8), [3, 3], [2, 2], colour_channels=2)]
+                    ckernels.WeightedColourPatchConv(GPflow.kernels.RBF(8), [3, 3], [2, 2], colour_channels=2)]
 
     def test_weight_vs_conv(self):
         X = np.random.randn(3, 9, 2).reshape(3, -1)
@@ -121,6 +124,18 @@ class TestWeightedConv(unittest.TestCase):
             self.assertTrue(np.all(k.compute_Kzx(Z, X) == -1 * wk.compute_Kzx(Z, X)))
             self.assertTrue(np.all(k.compute_Kzz(Z) == wk.compute_Kzz(Z)))
             wk.W = np.ones(wk.W.shape)
+
+
+class TestWeightedConsistency(unittest.TestCase):
+    def setUp(self):
+        wconv = ckernels.WeightedConv(GPflow.kernels.RBF(4), [5, 5], [2, 2])
+        wconv.W = np.random.randn(wconv.num_patches)
+        self.kernels = [wconv]
+
+    def test_diag_consistency(self):
+        X = np.random.randn(7, 5 * 5)
+        for k in self.kernels:
+            self.assertTrue(np.allclose(k.compute_Kdiag(X), np.diag(k.compute_K_symm(X))))
 
 
 if __name__ == "__main__":

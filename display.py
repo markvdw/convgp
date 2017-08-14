@@ -17,17 +17,21 @@ hs = [pd.read_pickle(hf) for hf in args.hist_file]
 plt.figure()
 for h, f in zip(hs, args.hist_file):
     fn = os.path.splitext(os.path.split(f)[-1])[0]
-    plt.subplot(211)
+    plt.subplot(311)
     idx = h.t / 3600 if args.xaxis == "time" else h.i
     # plt.plot(idx, np.convolve(h.f, np.ones(args.smooth) / args.smooth, 'same'), label=fn, alpha=0.5)
     smooth = np.ones(args.smooth) / args.smooth
     plt.plot(np.convolve(idx, smooth, 'valid'), np.convolve(h.f, smooth, 'valid'), label=fn, alpha=0.5)
     # plt.plot(idx, h.f, label=fn)
-    plt.subplot(212)
+    plt.subplot(312)
     plt.plot(idx, h.learning_rate)
     plt.ylabel("Learning rate")
     plt.yscale('log')
-plt.subplot(211)
+    plt.subplot(313)
+    plt.plot(idx, h.minibatch_size)
+    plt.ylabel("Minibatch size")
+    plt.yscale('log')
+plt.subplot(311)
 plt.legend()
 plt.xlabel("Time (hrs)")
 plt.ylabel("LML bound")
@@ -42,18 +46,18 @@ for h in hs:
 
 plt.figure()
 for i, h in enumerate(hs):
-    # try:
-    # f = h[~h.err.isnull()].filter(regex="model.kern.convrbf.basek*")
-    ss = h[~h.err.isnull()]
-    f = ss.filter(regex=".*(lengthscales)")
-    if f.shape[1] > 0:
-        plt.plot(f, color="C%i" % i)
-    f = ss.filter(regex=".*(variance)")
-    plt.plot(f, color="C%i" % i, alpha=0.5)
-    # f = h.filter(regex="model.kern.convrbf.basek*")
-    # plt.plot(h.t, f[~f.acc.isnull()])
-    # except:
-    #     pass
+    try:
+        # f = h[~h.err.isnull()].filter(regex="model.kern.convrbf.basek*")
+        ss = h[~h.err.isnull()]
+        f = ss.filter(regex=".*(lengthscales)")
+        if f.shape[1] > 0:
+            plt.plot(f, color="C%i" % i)
+        f = ss.filter(regex=".*(variance)")
+        plt.plot(f, color="C%i" % i, alpha=0.5)
+        # f = h.filter(regex="model.kern.convrbf.basek*")
+        # plt.plot(h.t, f[~f.acc.isnull()])
+    except:
+        pass
 
 # plt.figure()
 # for i, h in enumerate(hs):
@@ -136,8 +140,8 @@ for i, h in enumerate(hs):
     plt.figure(w_fig.number)
     plt.subplot(nsbplt, nsbplt, i + 1)
     Wseries = h[~h.acc.isnull()].iloc[-1].filter(regex=".*.W")
-    if len(Wseries) >= 1:
-        patch_weights = Wseries[0]
+    if len(Wseries) >= 1 or len(Wseries) == 2352:
+        patch_weights = Wseries[0].flatten()
         patch_h = int(np.ceil(patch_weights.shape[-1] ** 0.5))
         if patch_h ** 2.0 != patch_weights.shape[-1]:
             patch_h = int(np.ceil((patch_weights.shape[-1] / 3) ** 0.5))

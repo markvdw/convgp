@@ -8,7 +8,8 @@ import pandas as pd
 import GPflow
 import exp_tools
 import opt_tools
-import svconvgp.convkernels as ckern
+import convgp.convkernels as ckern
+import convgp.misvgp as misvgp
 
 
 class CifarExperiment(exp_tools.CifarExperiment):
@@ -28,7 +29,7 @@ class CifarExperiment(exp_tools.CifarExperiment):
         elif self.run_settings['kernel'] == "wconv":
             k = ckern.WeightedConv(GPflow.kernels.RBF(25), [32, 32], [5, 5], colour_channels=3)
         elif self.run_settings['kernel'] == "cpwconv":
-            k = ckern.WeightedMultiChannelConv(GPflow.kernels.RBF(25 * 3), [32, 32], [5, 5], colour_channels=3)
+            k = ckern.WeightedColourPatchConv(GPflow.kernels.RBF(25 * 3), [32, 32], [5, 5], colour_channels=3)
         elif self.run_settings['kernel'] == "addwconv":
             basekern = None
             for i in range(3):
@@ -37,7 +38,10 @@ class CifarExperiment(exp_tools.CifarExperiment):
                 basekern = basekern + addkern if basekern is not None else addkern
             # basekern = basekern + GPflow.kernels.RBF(3 * patch_size * patch_size, variance=0.1)
 
-            k = ckern.WeightedMultiChannelConv(basekern, [32, 32], [patch_size, patch_size], colour_channels=3)
+            k = ckern.WeightedColourPatchConv(basekern, [32, 32], [patch_size, patch_size], colour_channels=3)
+        elif self.run_settings['kernel'] == "multi":
+            k = misvgp.WeightedMultiChannelConvGP(GPflow.kernels.RBF(5 * 5), [32, 32], [5, 5], 3)
+            self.pred_batch_size = 200
         else:
             raise NotImplementedError
 
@@ -48,10 +52,17 @@ class CifarExperiment(exp_tools.CifarExperiment):
 
         k.fixed = self.run_settings.get('fixed', False)
 
-        self.m = GPflow.svgp.SVGP(self.X, self.Y, k, GPflow.likelihoods.MultiClass(10), Z.copy(), num_latent=10,
-                                  minibatch_size=self.run_settings.get('minibatch_size', self.M))
-        # if self.run_settings["fix_w"]:
-        #     self.m.kern.W.fixed = True
+        if self.run_settings['kernel'] == "multi":
+            from convgp.misvgp import MultiOutputInducingSVGP
+            self.m = MultiOutputInducingSVGP(self.X, self.Y, k, GPflow.likelihoods.MultiClass(10), Z.copy(),
+                                             num_latent=10,
+                                             minibatch_size=self.run_settings.get('minibatch_size', self.M))
+        else:
+            self.m = GPflow.svgp.SVGP(self.X, self.Y, k, GPflow.likelihoods.MultiClass(10), Z.copy(), num_latent=10,
+                                      minibatch_size=self.run_settings.get('minibatch_size', self.M))
+
+            # if self.run_settings["fix_w"]:
+            #     self.m.kern.W.fixed = True
 
     def setup_logger(self, verbose=False):
         h = pd.read_pickle(self.hist_path) if os.path.exists(self.hist_path) else None
@@ -60,17 +71,18 @@ class CifarExperiment(exp_tools.CifarExperiment):
         tasks = [
             opt_tools.tasks.DisplayOptimisation(opt_tools.seq_exp_lin(1.1, 20)),
             opt_tools.tasks.GPflowLogOptimisation(opt_tools.seq_exp_lin(1.1, 20)),
-            exp_tools.GPflowMultiClassificationTrackerLml(
-                self.Xt[:, :], self.Yt[:, :], itertools.count(1800, 1800), trigger="time",
-                verbose=True, store_x="final_only", store_x_columns=".*(variance|lengthscales)"),
+            # Uncomment to keep track of exact lml bound. This causes problems with memory sometimes.
+            # exp_tools.GPflowMultiClassificationTrackerLml(
+            #     self.Xt[:, :], self.Yt[:, :], itertools.count(1800, 1800), trigger="time",
+            #     verbose=True, store_x="final_only", store_x_columns=".*(variance|lengthscales)"),
             opt_tools.gpflow_tasks.GPflowMultiClassificationTracker(
-                self.Xt[:, :], self.Yt[:, :], opt_tools.seq_exp_lin(1.5, 300, start_jump=30), trigger="time",
+                self.Xt[:, :], self.Yt[:, :], itertools.count(300, 1000), trigger="time",
                 verbose=True, store_x="final_only", store_x_columns=".*(variance|lengthscales)", old_hist=h),
             opt_tools.tasks.StoreOptimisationHistory(self.hist_path, opt_tools.seq_exp_lin(1.5, 600, start_jump=30),
                                                      trigger="time", verbose=False),
             opt_tools.tasks.Timeout(self.run_settings.get("timeout", np.inf))
         ]
-        tasks[3].pred_batch_size = self.pred_batch_size
+        tasks[2].pred_batch_size = self.pred_batch_size
         self.logger = opt_tools.GPflowOptimisationHelper(self.m, tasks)
 
 

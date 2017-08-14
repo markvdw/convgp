@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 import GPflow
-import svconvgp.svsumgp as sumgp
+import convgp.svsumgp as sumgp
 
 GPflow.settings.numerics.float_type = tf.float64
 
