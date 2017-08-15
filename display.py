@@ -31,7 +31,7 @@ for h, f in zip(hs, args.hist_file):
     plt.plot(idx, h.minibatch_size)
     plt.ylabel("Minibatch size")
     plt.yscale('log')
-plt.subplot(311)
+plt.subplot(313)
 plt.legend()
 plt.xlabel("Time (hrs)")
 plt.ylabel("LML bound")
@@ -43,6 +43,10 @@ for h in hs:
     if 'lml' in h.columns:
         f = h[~(h.lml == 0.0) & ~np.isnan(h.lml)]
         plt.plot(f.t / 3600, f.lml, '-')
+    else:
+        plt.plot([])
+plt.xlabel("Time (hrs)")
+plt.ylabel("LML bound")
 
 plt.figure()
 for i, h in enumerate(hs):
@@ -58,6 +62,8 @@ for i, h in enumerate(hs):
         # plt.plot(h.t, f[~f.acc.isnull()])
     except:
         pass
+plt.xlabel("Time (hrs)")
+plt.ylabel("Some hyperparameters")
 
 # plt.figure()
 # for i, h in enumerate(hs):
@@ -87,6 +93,8 @@ if args.logscale:
 plt.figure()
 for h in hs:
     plt.plot(h.t / h.tt)
+plt.xlabel("Record")
+plt.ylabel("Proportion of time optimising")
 
 
 def reshape_patches_for_plot(patches):

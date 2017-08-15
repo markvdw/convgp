@@ -65,13 +65,10 @@ python mnist01.py -k wconv -M 50
 
 #### Mnist
 ```
-python mnist.py -k rbf -M 750 -l 0.001  # Replicate earlier experiments with RBF kernel
-python mnist.py -k conv -M 750 -l 0.001 --minibatch-size 200
-python mnist.py -k wconv -M 750 -l 0.001 --minibatch-size 200
-python sumkern_mnist.py -k1 wconv -k2 rbf -M 750 --vardist full --learning-rate-block-iters=20000 --learning-rate "0.001 * 10**-(i // b / 3) --minibatch-size 200
+python mnist.py -k rbf -M 750 --learning-rate-block-iters=60000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
 python mnist.py -k conv -M 750 --learning-rate-block-iters=30000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
 python mnist.py -k wconv -M 750 --learning-rate-block-iters=30000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
-python mnist.py -k rbf -M 750 --learning-rate-block-iters=60000 --learning-rate "0.001 * 10**-(i // b / 3)" --minibatch-size 200
+python sumkern_mnist.py -k1 wconv -k2 rbf -M 750 --vardist full --learning-rate-block-iters=20000 --learning-rate "0.001 * 10**-(i // b / 3) --minibatch-size 200
 ```
 The learning rate decay of the sum kernel experiment is set too aggressively for convergence of the variational
 objective function. However, this rate was chosen as it repeatably converges to the (near-optimal) performance reported
@@ -87,6 +84,11 @@ python cifar.py -k addwconv -M 1000 --minibatch-size 30
 
 
 ## Reproducing the plots from the paper
+For reference, you can download the pickled optimisation histories for the results in the paper for
+[full MNIST (223 MB)](http://mlg.eng.cam.ac.uk/mvdwilk/convgp/convgp-fullmnist-results.tar.gz) and for
+[CIFAR-10 (X MB)](http://mlg.eng.cam.ac.uk/mvdwilk/convgp/convgp-cifar10-results.tar.gz). SHA checksums can be found in
+`./results/`.
+
 After running the above experiments, you can run `python paper-plots.py` to recreate the figures from the paper.
 
 ## Notes on the code
