@@ -47,7 +47,7 @@ python display.py ./results/fullmnist*
 #### Rectangles
 ```
 python rectangles.py -k conv -M 16 --minibatch-size 100 -l 0.01 -n rectangles-paper  # Paper
-python rectangles.py -k rbf -M 1200  # Compare to the optimal RBF
+python rectangles.py -k fullgp-rbf --optimiser l-bfgs-b -M 0  # Optimal RBF
 python rectangles.py -k wconv -M 16 --minibatch-size 100 -l 0.01  # Full solution
 python rectangles.py -k conv -M 35 --minibatch-size 100 -l 0.01  # Full support on the GP
 python rectangles.py -k wconv -M 35 --minibatch-size 100 -l 0.01  # Idem

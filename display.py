@@ -31,10 +31,11 @@ for h, f in zip(hs, args.hist_file):
     plt.plot(idx, h.minibatch_size)
     plt.ylabel("Minibatch size")
     plt.yscale('log')
-plt.subplot(313)
-plt.legend()
-plt.xlabel("Time (hrs)")
+plt.subplot(311)
 plt.ylabel("LML bound")
+plt.legend()
+plt.subplot(313)
+plt.xlabel("Time (hrs)")
 if args.logscale:
     plt.xscale('log')
 

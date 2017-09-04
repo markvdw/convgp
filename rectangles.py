@@ -34,7 +34,7 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
 
     def setup_model(self):
         Z = None
-        if self.run_settings['kernel'] == "rbf":
+        if self.run_settings['kernel'] == "rbf" or self.run_settings['kernel'] == "fullgp-rbf":
             k = GPflow.kernels.RBF(28 * 28, ARD=self.run_settings['kernel_ard'])
             Z = self.X[np.random.permutation(len(self.X))[:self.M], :]
             k.lengthscales = 3.0
@@ -74,9 +74,13 @@ class RectanglesExperiment(exp_tools.ExperimentBase):
                 raise NotImplementedError
 
         k.fixed = self.run_settings.get('fixed', False)
-        self.m = GPflow.svgp.SVGP(self.X, self.Y, k, GPflow.likelihoods.Bernoulli(), Z.copy(), num_latent=1,
-                                  minibatch_size=self.run_settings.get('minibatch_size', self.M))
-        self.m.Z.fixed = self.run_settings.get('fixedZ', False)
+        if self.run_settings['kernel'] == "fullgp-rbf":
+            # self.m = GPflow.vgp.VGP_opper_archambeau(self.X, self.Y, k, GPflow.likelihoods.Bernoulli())
+            self.m = GPflow.vgp.VGP(self.X, self.Y, k, GPflow.likelihoods.Bernoulli())
+        else:
+            self.m = GPflow.svgp.SVGP(self.X, self.Y, k, GPflow.likelihoods.Bernoulli(), Z.copy(), num_latent=1,
+                                      minibatch_size=self.run_settings.get('minibatch_size', self.M))
+            self.m.Z.fixed = self.run_settings.get('fixedZ', False)
 
     def setup_logger(self, verbose=None):
         h = pd.read_pickle(self.hist_path) if os.path.exists(self.hist_path) else None
