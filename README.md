@@ -22,6 +22,14 @@ You will also need to setup the datasets. In `/datasets`, run:
  python process_rectangles.py
  ```
 
+### Running tests
+Tests to check the correct functioning of most of the code is included. To run the tests use one of the two following:
+```
+python -m unittest
+nosetests testing --nologcapture --with-coverage --cover-package=convgp --cover-html
+```
+The test coverage includes everything except the class `MultiOutputInducingSVGP`.
+
 ## Experiments
 ### Speed considerations
 Running on the GPU is possible, and often significantly faster when using `float32` data. This reduced precision is fine

@@ -4,6 +4,7 @@ import numpy as np
 
 import GPflow
 import convgp.convkernels as ckernels
+import convgp.misvgp as misvgp
 
 
 class TestConvRBF(unittest.TestCase):
@@ -41,7 +42,7 @@ class TestConvRBF(unittest.TestCase):
 class TestGeneral(unittest.TestCase):
     def setUp(self):
         wconv = ckernels.WeightedConv(GPflow.kernels.RBF(4), [3, 3], [2, 2])
-        mcwconv = ckernels.WeightedMultiChannelConvGP(GPflow.kernels.RBF(4), [3, 3], [2, 2])
+        mcwconv = misvgp.WeightedMultiChannelConvGP(GPflow.kernels.RBF(4), [3, 3], [2, 2])
         self.kernels = [ckernels.Conv(GPflow.kernels.RBF(4), [3, 3], [2, 2]),
                         wconv,
                         ckernels.ConvRBF([3, 3], [2, 2]),
@@ -50,8 +51,9 @@ class TestGeneral(unittest.TestCase):
     def test_diag_consistency(self):
         X = np.random.randn(3, 3 * 3)
         for k in self.kernels:
-            self.assertTrue(np.allclose(k.compute_Kdiag(X), np.diag(k.compute_K_symm(X))))
-            self.assertTrue(np.all(k.compute_Kdiag(np.ones([10, 3 * 3])) == 1.0))
+            self.assertTrue(np.allclose(k.compute_Kdiag(X).flatten(), np.diag(k.compute_K_symm(X))),
+                            msg="Kernel: %s" % str(k))
+            self.assertTrue(np.all(k.compute_Kdiag(np.ones([10, 3 * 3])) == 1.0), msg="Kernel: %s" % str(k))
 
     def test_init_patches(self):
         X = np.zeros((1, 9))
