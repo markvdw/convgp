@@ -39,12 +39,12 @@ class Mnist01Experiment(exp_tools.MnistExperiment):
             Z = self.X[np.random.permutation(len(self.X))[:self.M], :]
             k.lengthscales = 3.0
         elif self.run_settings['kernel'] == "conv":
-            # k = ckern.ConvRBF([28, 28], [3, 3]) + GPflow.kernels.White(1, 1e-3)
-            k = ckern.Conv(GPflow.kernels.RBF(9, ARD=self.run_settings['kernel_ard']), [28, 28],
-                           [3, 3]) + GPflow.kernels.White(1, 1e-3)
+            # k = ckern.ConvRBF([28, 28], [5, 5]) + GPflow.kernels.White(1, 1e-3)
+            k = ckern.Conv(GPflow.kernels.RBF(25, ARD=self.run_settings['kernel_ard']), [28, 28],
+                           [5, 5]) + GPflow.kernels.White(1, 1e-3)
         elif self.run_settings['kernel'] == "wconv":
-            k = ckern.WeightedConv(GPflow.kernels.RBF(9, ARD=self.run_settings['kernel_ard']), [28, 28],
-                                   [3, 3]) + GPflow.kernels.White(1, 1e-3)
+            k = ckern.WeightedConv(GPflow.kernels.RBF(25, ARD=self.run_settings['kernel_ard']), [28, 28],
+                                   [5, 5]) + GPflow.kernels.White(1, 1e-3)
         else:
             raise NotImplementedError
 
@@ -57,7 +57,12 @@ class Mnist01Experiment(exp_tools.MnistExperiment):
                 Z = patches[np.random.permutation(len(patches))[:self.M], :]
             elif self.run_settings['Zinit'] == "patches-unique":
                 Z = np.zeros((1, k.kern_list[0].patch_len))
-                for x in np.split(self.X, len(self.X) // 100):
+                try:
+                    from tqdm import tqdm
+                except ImportError:
+                    def tqdm(x):
+                        return x
+                for x in tqdm(np.split(self.X, len(self.X) // 149)):
                     patches = k.kern_list[0].compute_patches(x).reshape(-1, k.kern_list[0].patch_len)
                     Z = np.vstack({tuple(row) for row in np.vstack((Z, patches))})
                 Z = Z[:self.M, :]
@@ -79,8 +84,7 @@ class Mnist01Experiment(exp_tools.MnistExperiment):
             opt_tools.gpflow_tasks.GPflowBinClassTracker(self.Xt[:, :], self.Yt[:, :],
                                                          opt_tools.seq_exp_lin(1.1, 80, 3),
                                                          verbose=True, store_x="final_only",
-                                                         store_x_columns=['model.kern.convrbf.basekern.lengthscales',
-                                                                          'model.kern.convrbf.basekern.variance'],
+                                                         store_x_columns='.*(variance|lengthscales)',
                                                          old_hist=h),
             opt_tools.tasks.StoreOptimisationHistory(self.hist_path, itertools.count(0, 60), verbose=False)
         ]
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument('--optimiser', help="Optimiser.", default="adam")
     parser.add_argument('--no-opt', help="Do not optimise.", action="store_true", default=False)
     parser.add_argument('--kernel', '-k', help="Kernel.")
-    parser.add_argument('--Zinit', help="Inducing patches init.", default="patches-unique", type=str)
+    parser.add_argument('--Zinit', help="Inducing patches init.", default="patches", type=str)
     parser.add_argument('--kernel-ard', help="Switch ARD on in the kernel.", default=False, action="store_true")
     args = parser.parse_args()
 

@@ -58,7 +58,7 @@ perhaps other kernels (possibly additive).
 
 #### Mnist 0 vs 1
 ```
-python mnist01.py -k rbf -M 20
+python mnist01.py -k rbf -M 100
 python mnist01.py -k conv -M 50
 python mnist01.py -k wconv -M 50
 ```
