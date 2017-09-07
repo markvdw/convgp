@@ -6,7 +6,7 @@ and will be continuously published over the next week or so. Things that you can
 - detailed commands to replicate the exact experiments in the paper.
 
 ## Paper
-The accompanying paper can be found on [arXiv](https://arxiv.org/to_be_published).
+The accompanying paper can be found on [arXiv](https://arxiv.org/abs/1709.01894).
 
 ## Setup
 ### GPflow with inter-domain support
